@@ -10,7 +10,7 @@ The current application already runs entirely on typed fixtures and in-memory st
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `ENABLE_EXPERIMENTAL_COREPACK=1` | Vercel build settings | Use the committed `packageManager` pin, pnpm 10.20.0. |
+| `ENABLE_EXPERIMENTAL_COREPACK` | Not required | Remove this override for Vercel; `vercel.json` explicitly invokes pnpm 10.20.0 through npx. |
 | `UI_BASE_URL` | Optional local browser test command | Target an already running production or hosted preview URL. Omit to use the existing local dev test server. |
 | `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` | Optional local browser test command | Override the Chromium executable. |
 
@@ -25,11 +25,11 @@ With authorized Vercel/team and source repository access available:
 1. Import the repository as a separate preview project. Select the intended UI review branch; do not attach the real product domain.
 2. Set **Root Directory** to `apps/web` and **Framework Preset** to `Next.js`. Leave inclusion of files outside the root disabled.
 3. Set Node.js to **22.x**, matching `package.json` and the existing Docker toolchain.
-4. Set **Install Command** to `pnpm install --frozen-lockfile`, **Build Command** to `pnpm build`, and leave **Output Directory** at the Next.js default. Set `ENABLE_EXPERIMENTAL_COREPACK=1` for the target build environment. Do not run root `make verify`, Docker, or any backend build in Vercel.
+4. Use the committed `apps/web/vercel.json`: install runs `npx --yes pnpm@10.20.0 install --frozen-lockfile`; build runs `npx --yes pnpm@10.20.0 build`. Remove stale dashboard command overrides (or set them to these exact commands), remove `ENABLE_EXPERIMENTAL_COREPACK`, and leave **Output Directory** at the Next.js default. Do not run root `make verify`, Docker, or any backend build in Vercel.
 5. Review project access/protection settings for the intended customers, then create a Preview deployment from the review branch when authorized. Importing a project may also create an initial production deployment: review its branch and access settings before triggering it.
 6. Confirm the deployment build uses Node 22 and pnpm 10.20.0. Open its assigned HTTPS URL and perform the checks below before sharing it.
 
-Vercel's [build configuration documentation](https://vercel.com/docs/builds/configure-a-build) covers project root, build overrides and Corepack. No `vercel.json` is required: automatic Next.js handling supports the existing static and dynamic App Router pages. Do not add a catch-all rewrite, `output: export`, API proxy or custom start command. Vercel provides [managed SSL certificates](https://vercel.com/docs/domains/working-with-ssl); verify HTTPS on the actual deployment after it exists.
+Vercel's [build configuration documentation](https://vercel.com/docs/builds/configure-a-build) covers project root and build overrides. `vercel.json` pins the package-manager commands because a hosted build selected a pnpm version incompatible with the version-9 lockfile despite the frontend's existing `packageManager` declaration. The log does not identify which manifest Vercel inspected, so the exact cause of its missing-property warning is unconfirmed. Explicit invocation avoids relying on that detection; keep the frozen lockfile. Automatic Next.js handling supports the existing static and dynamic App Router pages. Do not add a catch-all rewrite, `output: export`, API proxy or custom start command. Vercel provides [managed SSL certificates](https://vercel.com/docs/domains/working-with-ssl); verify HTTPS on the actual deployment after it exists.
 
 For rollback, restore the last verified deployment in Vercel or revert the UI change and redeploy. There are no database migrations or persisted demo records to roll back. Remove the preview project when review is complete if it is no longer needed.
 
@@ -83,7 +83,24 @@ Not executed: Vercel build/deployment, hosted HTTPS smoke checks, customer acces
 
 ## Modified files
 
+### Hosted install failure follow-up
+
+The supplied Vercel log for `dev` commit `c431427` failed before compilation: Corepack reported a missing `packageManager` and the selected pnpm ignored the incompatible lockfile. The local frontend manifest already declares `pnpm@10.20.0`; the exact manifest inspected remotely is unverified. [Vercel documents](https://vercel.com/docs/package-managers) that a plain install-command override can select its oldest bundled pnpm.
+
+Added `apps/web/vercel.json` and updated this guide. Executed from `apps/web` with Node 22.23.4 selected through PATH:
+
+```sh
+npx --yes pnpm@10.20.0 install --frozen-lockfile
+npx --yes pnpm@10.20.0 build
+python3 -m json.tool vercel.json
+```
+
+All passed; install reported pnpm 10.20.0 and an up-to-date lockfile. Build included lint/type validation and completed static/dynamic route output. An initial attempt to nest npx inside an `npx -c` wrapper failed with npm EUSAGE; selecting Node through PATH resolved this local command-wrapper issue. Browser/unit/contract suites were not rerun for this configuration-only follow-up. No hosted redeployment or HTTPS verification was performed. Push these changes to the deployment branch and deploy the new commit; rebuilding `c431427` cannot include the fix.
+
+### Preview preparation files
+
 - `apps/web/package.json`: Node 22 runtime declaration.
+- `apps/web/vercel.json`: explicitly invoke pnpm 10.20.0 for hosted install/build, preserving the frozen lockfile.
 - `apps/web/.gitignore`, `apps/web/.dockerignore`: exclude local environment files and Vercel metadata.
 - `apps/web/e2e/ui.spec.ts`: enforce backend-independent HTTP(S) behavior across browser scenarios.
 - `README.md`, `docs/ROADMAP.md`: link deployment guide and name this scoped ticket.
