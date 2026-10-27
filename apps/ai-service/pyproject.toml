@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "edutech-ai-service"
+version = "0.0.1"
+requires-python = ">=3.12"
+dependencies = ["sqlalchemy>=2.0,<3", "psycopg[binary]>=3.2,<4", "pydantic-settings>=2.6,<3", "fastapi>=0.115,<1", "uvicorn>=0.32,<1", "alembic>=1.14,<2"]
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "ruff>=0.9,<1", "mypy>=1.14,<2", "httpx>=0.28,<1", "types-PyYAML", "PyYAML>=6", "boto3-stubs[sqs]"]
+[tool.setuptools.packages.find]
+include = ["ai_service*"]
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+[tool.pytest.ini_options]
+pythonpath = ["."]

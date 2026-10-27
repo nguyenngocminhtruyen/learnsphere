@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {"json": {"()": "ai_service.logging_config.JsonFormatter"}},
+  "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "json"}},
+  "root": {"level": "INFO", "handlers": ["console"]},
+  "loggers": {
+    "uvicorn": {"handlers": ["console"], "level": "INFO", "propagate": false},
+    "uvicorn.error": {"level": "INFO"},
+    "uvicorn.access": {"handlers": ["console"], "level": "INFO", "propagate": false}
+  }
+}

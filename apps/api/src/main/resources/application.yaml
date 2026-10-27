@@ -1,0 +1,21 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${LMS_DATABASE_URL}
+    username: ${LMS_DATABASE_USER}
+    password: ${LMS_DATABASE_PASSWORD}
+    hikari:
+      connection-timeout: 2000
+      connection-init-sql: SET statement_timeout = '2000ms'
+  flyway:
+    url: ${LMS_DATABASE_URL}
+    user: ${LMS_MIGRATION_USER}
+    password: ${LMS_MIGRATION_PASSWORD}
+    schemas: lms
+    default-schema: lms
+    create-schemas: false
+logging:
+  structured:
+    format:
+      console: logstash

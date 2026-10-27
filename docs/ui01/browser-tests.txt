@@ -1,0 +1,20 @@
+
+> edutech-web@0.0.1 test:e2e /var/www/startup/edu_tech/apps/web
+> playwright test
+
+
+Running 9 tests using 1 worker
+
+(node:81465) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › e2e/ui.spec.ts:31:7 › all screens render with no horizontal overflow at 1440px (2.4s)
+  ✓  2 [chromium] › e2e/ui.spec.ts:31:7 › all screens render with no horizontal overflow at 768px (1.6s)
+  ✓  3 [chromium] › e2e/ui.spec.ts:31:7 › all screens render with no horizontal overflow at 375px (1.6s)
+  ✓  4 [chromium] › e2e/ui.spec.ts:49:5 › catalog search, combined filters, sorting, empty state and header search (592ms)
+  ✓  5 [chromium] › e2e/ui.spec.ts:94:5 › student enrollment, lessons, notes, resource, tutor, quiz and completed progress (7.7s)
+  ✓  6 [chromium] › e2e/ui.spec.ts:197:5 › admin edits, explicitly publishes and generates a reviewed draft with error recovery (6.0s)
+  ✓  7 [chromium] › e2e/ui.spec.ts:341:5 › auth rejects invalid inputs and clears demo credentials without persistence (597ms)
+  ✓  8 [chromium] › e2e/ui.spec.ts:381:5 › language switch, keyboard access, invalid paths and no backend requests (3.1s)
+  ✓  9 [chromium] › e2e/ui.spec.ts:462:5 › demo access forms cannot submit credentials when JavaScript is disabled (239ms)
+
+  9 passed (24.7s)

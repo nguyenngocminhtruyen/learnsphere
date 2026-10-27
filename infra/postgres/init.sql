@@ -1,0 +1,12 @@
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE ROLE lms_migrator LOGIN PASSWORD 'local_lms_migration';
+CREATE ROLE ai_migrator LOGIN PASSWORD 'local_ai_migration';
+CREATE ROLE lms_app LOGIN PASSWORD 'local_lms';
+CREATE ROLE ai_app LOGIN PASSWORD 'local_ai';
+CREATE SCHEMA lms AUTHORIZATION lms_migrator;
+CREATE SCHEMA ai AUTHORIZATION ai_migrator;
+GRANT USAGE ON SCHEMA lms TO lms_app;
+GRANT USAGE ON SCHEMA ai TO ai_app;
+ALTER ROLE lms_app SET search_path TO lms;
+ALTER ROLE ai_app SET search_path TO ai;

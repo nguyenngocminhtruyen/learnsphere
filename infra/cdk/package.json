@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "synth:dev": "cdk synth -c stage=dev",
+    "synth:prod": "cdk synth -c stage=prod"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.220.0",
+    "constructs": "10.4.2"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1031.0",
+    "typescript": "5.9.3",
+    "ts-node": "10.9.2",
+    "@types/node": "22.18.0"
+  },
+  "packageManager": "pnpm@10.20.0"
+}

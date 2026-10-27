@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "generate": "openapi-generator-cli generate -i openapi/lms-public.yaml -g java -o generated/java --additional-properties=library=native,hideGenerationTimestamp=true && openapi-generator-cli generate -i openapi/ai-internal.yaml -g python -o generated/python --additional-properties=packageName=ai_client && mvn -q -f generated/java/pom.xml test && python -m pip install ./generated/python && python -m compileall generated/python/ai_client"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "2.25.0"
+  },
+  "packageManager": "pnpm@10.20.0"
+}

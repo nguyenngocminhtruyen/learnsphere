@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: edutech
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: local_bootstrap_only
+    ports: ["127.0.0.1:5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/001.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d edutech"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  localstack:
+    image: localstack/localstack:4.9.2
+    environment:
+      SERVICES: sqs
+      AWS_DEFAULT_REGION: us-east-1
+    ports: ["127.0.0.1:4566:4566"]
+    volumes:
+      - ./infra/localstack/init.sh:/etc/localstack/init/ready.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /tmp/phase0-ready"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  ai-migrate:
+    build: ./apps/ai-service
+    user: "0"
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      AI_MIGRATION_DATABASE_URL: postgresql+psycopg://ai_migrator:local_ai_migration@postgres/edutech
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    build: ./apps/api
+    ports: ["127.0.0.1:${API_PORT:-8080}:8080"]
+    environment:
+      LMS_DATABASE_URL: jdbc:postgresql://postgres:5432/edutech
+      LMS_DATABASE_USER: lms_app
+      LMS_DATABASE_PASSWORD: local_lms
+      LMS_MIGRATION_USER: lms_migrator
+      LMS_MIGRATION_PASSWORD: local_lms_migration
+    depends_on:
+      postgres: {condition: service_healthy}
+  ai-service:
+    build: ./apps/ai-service
+    environment:
+      AI_DATABASE_URL: postgresql+psycopg://ai_app:local_ai@postgres/edutech
+      AI_SERVICE_TOKEN: local-only-service-token-32-characters
+    depends_on:
+      ai-migrate: {condition: service_completed_successfully}
+  ai-worker:
+    build: ./apps/ai-worker
+    environment:
+      WORKER_ADAPTER: sqs
+      WORKER_ENDPOINT_URL: http://localstack:4566
+      WORKER_QUEUE_URL: http://localstack:4566/000000000000/phase0
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+    depends_on:
+      localstack: {condition: service_healthy}
+  web:
+    build: ./apps/web
+    ports: ["127.0.0.1:${WEB_PORT:-3000}:3000"]
+    depends_on: [api]
+volumes:
+  pgdata:

@@ -1,0 +1,8 @@
+node_modules
+.next
+.venv
+build
+.gradle
+__pycache__
+.env*
+.vercel
